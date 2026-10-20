@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Workflow de visualisation d'une offre | Gesta</title>
+    <style>
+      :root {
+        --ink: #17212b;
+        --muted: #5d6a75;
+        --paper: #f4f0e8;
+        --surface: #fffdf8;
+        --line: #d9d2c5;
+        --blue: #175b78;
+        --blue-soft: #dcecf2;
+        --orange: #c9632d;
+        --orange-soft: #f7e1d4;
+        --green: #36745b;
+        --green-soft: #dcecdf;
+        --red: #a33e3e;
+        --red-soft: #f5dddd;
+        --shadow: 0 14px 35px rgba(23, 33, 43, 0.09);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          linear-gradient(135deg, rgba(23, 91, 120, 0.06), transparent 38%),
+          var(--paper);
+        font-family: Georgia, "Times New Roman", serif;
+        line-height: 1.55;
+      }
+
+      .page {
+        width: min(1180px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 56px 0 72px;
+      }
+
+      header {
+        display: grid;
+        grid-template-columns: 1fr minmax(220px, 330px);
+        gap: 36px;
+        align-items: end;
+        padding-bottom: 42px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .eyebrow {
+        margin: 0 0 12px;
+        color: var(--orange);
+        font: 700 0.76rem/1.2 Arial, sans-serif;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      h1, h2, h3 { margin-top: 0; line-height: 1.12; }
+      h1 { max-width: 760px; margin-bottom: 18px; font-size: clamp(2.45rem, 6vw, 5rem); font-weight: 500; }
+      h2 { margin-bottom: 16px; font-size: 1.65rem; }
+      h3 { margin-bottom: 8px; font-size: 1.08rem; }
+      p { margin: 0; }
+
+      .intro {
+        max-width: 700px;
+        color: var(--muted);
+        font-size: 1.12rem;
+      }
+
+      .meta {
+        padding: 18px 20px;
+        border-left: 4px solid var(--orange);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        font: 0.9rem/1.55 Arial, sans-serif;
+      }
+
+      .meta strong { display: block; margin-bottom: 5px; color: var(--blue); }
+
+      section { padding-top: 44px; }
+
+      .workflow {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 14px;
+        align-items: stretch;
+      }
+
+      .step {
+        position: relative;
+        min-height: 210px;
+        padding: 20px 18px;
+        border: 1px solid var(--line);
+        border-top: 5px solid var(--blue);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+
+      .step:not(:last-child)::after {
+        content: "→";
+        position: absolute;
+        z-index: 1;
+        top: 50%;
+        right: -21px;
+        color: var(--orange);
+        font: 700 1.65rem Arial, sans-serif;
+        transform: translateY(-50%);
+      }
+
+      .number {
+        display: inline-grid;
+        width: 30px;
+        height: 30px;
+        margin-bottom: 22px;
+        place-items: center;
+        border-radius: 50%;
+        color: white;
+        background: var(--blue);
+        font: 700 0.88rem Arial, sans-serif;
+      }
+
+      .step p, .detail p, li { color: var(--muted); font: 0.92rem/1.55 Arial, sans-serif; }
+      code { color: var(--blue); font: 0.9em/1.3 Consolas, monospace; }
+
+      .details {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .detail {
+        padding: 24px;
+        border: 1px solid var(--line);
+        background: rgba(255, 253, 248, 0.72);
+      }
+
+      .detail h3 { color: var(--blue); }
+      ul { margin: 12px 0 0; padding-left: 20px; }
+      li + li { margin-top: 7px; }
+
+      .role-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .role {
+        padding: 20px;
+        border-left: 5px solid var(--green);
+        background: var(--green-soft);
+      }
+
+      .role h3 { color: var(--green); }
+
+      .response {
+        display: grid;
+        grid-template-columns: 0.8fr 1.2fr;
+        gap: 22px;
+        align-items: start;
+      }
+
+      pre {
+        margin: 0;
+        overflow-x: auto;
+        padding: 22px;
+        color: #f4f0e8;
+        background: #202d35;
+        font: 0.87rem/1.6 Consolas, monospace;
+      }
+
+      .screen {
+        padding: 22px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+      }
+
+      .screen-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 15px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--line);
+        font: 700 0.86rem Arial, sans-serif;
+      }
+
+      .screen table { width: 100%; border-collapse: collapse; font: 0.82rem Arial, sans-serif; }
+      th, td { padding: 10px 7px; border-bottom: 1px solid var(--line); text-align: left; }
+      th { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; }
+      .badge { padding: 4px 7px; color: var(--green); background: var(--green-soft); font-size: 0.72rem; }
+
+      .errors {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .error {
+        padding: 20px;
+        border-left: 5px solid var(--red);
+        background: var(--red-soft);
+      }
+
+      .error strong { display: block; margin-bottom: 5px; color: var(--red); font: 700 1rem Arial, sans-serif; }
+      .error p { color: #673535; font: 0.92rem/1.5 Arial, sans-serif; }
+
+      footer {
+        margin-top: 54px;
+        padding-top: 18px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font: 0.8rem Arial, sans-serif;
+      }
+
+      @media (max-width: 900px) {
+        header, .response { grid-template-columns: 1fr; }
+        .workflow { grid-template-columns: 1fr; }
+        .step { min-height: 0; }
+        .step:not(:last-child)::after {
+          top: auto;
+          right: auto;
+          bottom: -23px;
+          left: 50%;
+          transform: translateX(-50%) rotate(90deg);
+        }
+      }
+
+      @media (max-width: 640px) {
+        .page { width: min(100% - 24px, 1180px); padding-top: 32px; }
+        h1 { font-size: 2.65rem; }
+        .details, .role-grid, .errors { grid-template-columns: 1fr; }
+        section { padding-top: 34px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header>
+        <div>
+          <p class="eyebrow">Gesta · Architecture applicative</p>
+          <h1>Visualiser une offre, de l'écran à la base de données</h1>
+          <p class="intro">
+            Le parcours de lecture d'une offre suit une chaîne contrôlée : le frontend demande
+            les données, le backend identifie l'utilisateur, applique les règles de visibilité,
+            interroge SQLite, puis renvoie un DTO adapté à l'affichage.
+          </p>
+        </div>
+        <aside class="meta">
+          <strong>Point d'entrée</strong>
+          <code>GET /api/offers?period=P2</code>
+          <br>
+          <span>Le paramètre <code>period</code> est facultatif. Appel déclenché par <code>OffersPage</code> après authentification.</span>
+        </aside>
+      </header>
+
+      <section aria-labelledby="workflow-title">
+        <h2 id="workflow-title">Le parcours en cinq étapes</h2>
+        <div class="workflow">
+          <article class="step">
+            <span class="number">1</span>
+            <h3>La page se monte</h3>
+            <p><code>App.tsx</code> transmet l'utilisateur, le jeton et la fonction de déconnexion à <code>OffersPage</code>.</p>
+          </article>
+          <article class="step">
+            <span class="number">2</span>
+            <h3>Le hook charge</h3>
+            <p><code>useOffers</code> lance <code>getOffers</code> dans un effet et gère chargement, erreur et annulation.</p>
+          </article>
+          <article class="step">
+            <span class="number">3</span>
+            <h3>L'API reçoit</h3>
+            <p>Le proxy Vite retire <code>/api</code>. Express authentifie puis autorise la requête sur <code>/offers</code>.</p>
+          </article>
+          <article class="step">
+            <span class="number">4</span>
+            <h3>Le backend filtre</h3>
+            <p>Le service détermine le filtre selon le profil et le repository exécute la requête SQL avec ses jointures.</p>
+          </article>
+          <article class="step">
+            <span class="number">5</span>
+            <h3>L'écran se met à jour</h3>
+            <p>Le JSON est validé, stocké dans l'état React, puis rendu par <code>OfferTable</code>.</p>
+          </article>
+        </div>
+      </section>
+
+      <section aria-labelledby="frontend-title">
+        <h2 id="frontend-title">1 · Du frontend vers le backend</h2>
+        <div class="details">
+          <article class="detail">
+            <h3>Déclenchement et appel HTTP</h3>
+            <p>
+              Quand la route <code>/offres</code> est affichée, <code>OffersPage.tsx</code> appelle
+              <code>useOffers(token, period, onUnauthorized)</code>. Le hook crée un <code>AbortController</code>
+              puis demande les offres via <code>frontend/src/services/offers.service.ts</code>.
+            </p>
+            <ul>
+              <li>URL appelée : <code>/api/offers</code> ou <code>/api/offers?period=P2</code></li>
+              <li>Valeurs de période : <code>P1</code>, <code>P2</code> ou <code>OTHER</code></li>
+              <li>En-tête : <code>Authorization: &lt;token&gt;</code></li>
+              <li>Réponse attendue : un tableau d'offres</li>
+            </ul>
+          </article>
+          <article class="detail">
+            <h3>Proxy et validation</h3>
+            <p>
+              Vite redirige <code>/api/offers</code> et son éventuel paramètre <code>period</code> vers l'API backend, en supprimant le préfixe
+              <code>/api</code>. Le service appelle ensuite <code>readJson</code>, qui vérifie le
+              statut HTTP et le type de chaque champ avec <code>isOfferList</code>.
+            </p>
+            <ul>
+              <li>401 : déconnexion et retour à la connexion</li>
+              <li>Autre erreur : affichage de <code>ErrorState</code></li>
+              <li>Réponse valide : stockage dans <code>offers</code></li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section aria-labelledby="backend-title">
+        <h2 id="backend-title">2 · Contrôle côté backend</h2>
+        <div class="details">
+          <article class="detail">
+            <h3>Authentification puis autorisation</h3>
+            <p>
+              La route est montée dans <code>app.ts</code> derrière le middleware
+              <code>authenticate</code>. Le token identifie l'utilisateur ; le backend relit ses
+              informations en base. Ensuite <code>authorize(canListOffers)</code> vérifie qu'il
+              possède le droit de consulter les offres.
+            </p>
+          </article>
+          <article class="detail">
+            <h3>Contrôleur et service</h3>
+            <p>
+              <code>offers.controller.ts</code> récupère l'utilisateur courant et appelle
+              <code>offersService.listOffers</code>. Le service choisit le filtre, appelle le
+              repository, transforme les données avec <code>toOffer</code>, puis le contrôleur
+              transforme chaque offre en DTO avec <code>toOfferDto</code>.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section aria-labelledby="roles-title">
+        <h2 id="roles-title">3 · Les règles de visibilité</h2>
+        <div class="role-grid">
+          <article class="role">
+            <h3>Administrateur</h3>
+            <p>Aucun filtre de statut ni de déposant : toutes les offres sont retournées.</p>
+          </article>
+          <article class="role">
+            <h3>Étudiant</h3>
+            <p>Le service ajoute <code>status = PUBLISHED</code> : seules les offres publiées sont visibles.</p>
+          </article>
+          <article class="role">
+            <h3>Contact déposant</h3>
+            <p>Le service ajoute <code>depositorContactId = user.id</code> : seules ses offres sont visibles.</p>
+          </article>
+        </div>
+      </section>
+
+      <section aria-labelledby="database-title">
+        <h2 id="database-title">4 · Lecture SQLite et transformation</h2>
+        <div class="details">
+          <article class="detail">
+            <h3>Requête du repository</h3>
+            <p>
+              <code>offers.repository.ts</code> joint les tables <code>companies</code>,
+              <code>academic_years</code> et <code>periods</code>. Les résultats sont triés par
+              année académique décroissante puis par date de création décroissante.
+            </p>
+            <ul>
+              <li>Filtre de statut optionnel</li>
+              <li>Filtre de déposant optionnel</li>
+              <li>Retour d'un objet DBO contenant les noms SQL</li>
+            </ul>
+          </article>
+          <article class="detail">
+            <h3>DBO, modèle métier, DTO</h3>
+            <p>
+              Le DBO utilise des champs comme <code>company_short_name</code>. Le mapper le
+              convertit en objet métier, puis le DTO public conserve uniquement les champs
+              nécessaires à la liste. Cette séparation évite d'exposer la description, les
+              identifiants internes ou les dates techniques.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section aria-labelledby="response-title">
+        <h2 id="response-title">5 · Retour et affichage</h2>
+        <div class="response">
+          <pre aria-label="Exemple de réponse JSON">[
+  {
+    "id": 3,
+    "title": "API REST de facturation",
+    "companyShortName": "Orbis",
+    "academicYear": "2026-2027",
+    "period": "P2",
+    "status": "PUBLISHED"
+  }
+]</pre>
+          <div class="screen" aria-label="Aperçu du tableau des offres">
+            <div class="screen-head"><span>Offres de stage</span><span>3 offres</span></div>
+            <table>
+              <thead><tr><th>Titre</th><th>Entreprise</th><th>Année</th><th>Statut</th></tr></thead>
+              <tbody>
+                <tr><td>API REST de facturation</td><td>Orbis</td><td>2026-2027</td><td><span class="badge">Publiée</span></td></tr>
+                <tr><td>Refonte du portail client</td><td>Lumen Digital</td><td>2026-2027</td><td><span class="badge">Soumise</span></td></tr>
+              </tbody>
+            </table>
+            <p style="margin-top: 14px; color: var(--muted); font: 0.8rem Arial, sans-serif;">Les codes de période et de statut sont traduits par les utilitaires du frontend.</p>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="errors-title">
+        <h2 id="errors-title">Branches d'erreur</h2>
+        <div class="errors">
+          <article class="error">
+            <strong>401 · Session invalide</strong>
+            <p>Le hook appelle <code>onUnauthorized</code>, le token est supprimé et l'application revient à l'écran de connexion.</p>
+          </article>
+          <article class="error">
+            <strong>403 · Accès refusé</strong>
+            <p>Un contact qui n'a pas le rôle déposant ne peut pas consulter les offres ; le backend refuse la requête avant la lecture SQL.</p>
+          </article>
+        </div>
+      </section>
+
+      <footer>
+        Sources principales : <code>frontend/src/pages/OffersPage.tsx</code>,
+        <code>frontend/src/hooks/useOffers.ts</code>, <code>backend/src/controllers/offers.controller.ts</code>,
+        <code>backend/src/services/offers.service.ts</code> et <code>backend/src/repositories/offers.repository.ts</code>.
+      </footer>
+    </main>
+  </body>
+</html>
