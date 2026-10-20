@@ -21,6 +21,34 @@ gesta/
 En développement, le frontend appelle `/api/...`. Vite transmet ces requêtes au backend
 (`http://localhost:3000`) en retirant le préfixe `/api`.
 
+## Démarrage et flux d'exécution
+
+Le dépôt est un monorepo npm composé de deux workspaces (`backend` et `frontend`). La
+commande `npm run dev` lance les deux processus en parallèle : Vite sert l'interface sur
+le port `5173` et Express expose l'API sur le port `API_PORT` (3000 par défaut).
+
+Au démarrage de l'API, `main.ts` charge la configuration, ouvre la base SQLite, applique
+les migrations SQL manquantes, puis insère les données de démonstration si la base est
+vide. Il assemble ensuite l'application avec `createApp` et commence à écouter les
+requêtes. Le frontend ne connaît donc pas directement le fichier SQLite : toutes les
+données passent par l'API HTTP.
+
+```text
+Navigateur :5173
+  │ fetch /api/...
+  ▼
+Proxy Vite ── retire /api ──► API Express :3000
+                  │
+                  ├─ authentification / autorisation
+                  ├─ contrôleurs et services
+                  └─ repositories ──► SQLite
+```
+
+Pour les commandes communes, `package.json` à la racine orchestre les workspaces :
+`setup` prépare l'environnement et la base, `check` enchaîne lint, vérification des types,
+tests et build. Les tests backend utilisent une base SQLite en mémoire ; ils ne dépendent
+pas de la base locale de développement.
+
 ## Backend
 
 ```text
@@ -132,6 +160,15 @@ nouvelles.
 | Hook | `frontend/src/hooks/useOffers.ts` |
 | Page et composants | `frontend/src/pages/OffersPage.tsx`, `OfferTable.tsx` |
 | Tests interface | `frontend/tests/OffersPage.test.tsx`, `NavBar.test.tsx` |
+
+## État fonctionnel et limites
+
+L'architecture actuelle fournit la connexion de démonstration, la session, la navigation
+par profil, la consultation des entreprises et la consultation des offres. Les opérations
+d'écriture métier (création et validation d'offres, candidatures, stages, gestion des
+entreprises, conventions et exports) ne sont pas encore exposées par l'API ni par le
+frontend. La documentation d'architecture décrit donc les flux réellement implémentés,
+et non l'ensemble du cahier des charges cible.
 
 ## Tests
 
