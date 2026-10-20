@@ -249,9 +249,9 @@
         </div>
         <aside class="meta">
           <strong>Point d'entrée</strong>
-          <code>GET /api/offers</code>
+          <code>GET /api/offers?period=P2</code>
           <br>
-          <span>Appel déclenché par <code>OffersPage</code> après authentification.</span>
+          <span>Le paramètre <code>period</code> est facultatif. Appel déclenché par <code>OffersPage</code> après authentification.</span>
         </aside>
       </header>
 
@@ -293,11 +293,12 @@
             <h3>Déclenchement et appel HTTP</h3>
             <p>
               Quand la route <code>/offres</code> est affichée, <code>OffersPage.tsx</code> appelle
-              <code>useOffers(token, onUnauthorized)</code>. Le hook crée un <code>AbortController</code>
+              <code>useOffers(token, period, onUnauthorized)</code>. Le hook crée un <code>AbortController</code>
               puis demande les offres via <code>frontend/src/services/offers.service.ts</code>.
             </p>
             <ul>
-              <li>URL appelée : <code>/api/offers</code></li>
+              <li>URL appelée : <code>/api/offers</code> ou <code>/api/offers?period=P2</code></li>
+              <li>Valeurs de période : <code>P1</code>, <code>P2</code> ou <code>OTHER</code></li>
               <li>En-tête : <code>Authorization: &lt;token&gt;</code></li>
               <li>Réponse attendue : un tableau d'offres</li>
             </ul>
@@ -305,7 +306,7 @@
           <article class="detail">
             <h3>Proxy et validation</h3>
             <p>
-              Vite redirige <code>/api/offers</code> vers l'API backend, en supprimant le préfixe
+              Vite redirige <code>/api/offers</code> et son éventuel paramètre <code>period</code> vers l'API backend, en supprimant le préfixe
               <code>/api</code>. Le service appelle ensuite <code>readJson</code>, qui vérifie le
               statut HTTP et le type de chaque champ avec <code>isOfferList</code>.
             </p>
