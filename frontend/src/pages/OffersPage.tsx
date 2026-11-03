@@ -76,7 +76,7 @@ const OffersPage = ({ user, token, onUnauthorized }: OffersPageProps) => {
               value={message}
               onChange={(event) => setMessage(event.target.value)}
             />
-            {actionError && <p className="state state-error">{actionError}</p>}
+            {actionError && <p className="state state-error" role="alert">{actionError}</p>}
             <button type="button" onClick={submitApplication}>Envoyer ma candidature</button>
             <button type="button" onClick={() => setSelectedOffer(null)}>Annuler</button>
           </div>

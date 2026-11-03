@@ -58,6 +58,29 @@ describe("OffersPage", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("statut 403");
   });
 
+  it("affiche la raison métier d'une candidature déjà existante", async () => {
+    stubFetch({
+      "/api/offers": () => Response.json([
+        { ...offers[0], status: "PUBLISHED" },
+      ]),
+      "/api/applications/offers/2": () =>
+        Response.json(
+          { error: { code: "APPLICATION_EXISTS", message: "Vous avez déjà candidaté à cette offre" } },
+          { status: 409 },
+        ),
+    });
+
+    render(<OffersPage user={studentUser} token="jeton" onUnauthorized={vi.fn()} />);
+    await screen.findByText("Refonte du portail client");
+    fireEvent.click(screen.getByRole("button", { name: "Candidater" }));
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer ma candidature" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Vous avez déjà candidaté à cette offre",
+    );
+    expect(screen.queryByText("statut 409")).not.toBeInTheDocument();
+  });
+
   it("signale une session expirée", async () => {
     stubFetch({ "/api/offers": () => new Response(null, { status: 401 }) });
     const onUnauthorized = vi.fn();

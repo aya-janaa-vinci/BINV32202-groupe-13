@@ -15,6 +15,26 @@ export class ApiError extends Error {
 export const isUnauthorized = (error: unknown): boolean =>
   error instanceof ApiError && error.status === 401;
 
+const readErrorMessage = async (response: Response, fallback: string): Promise<string> => {
+  try {
+    const body: unknown = await response.json();
+    if (
+      typeof body === "object" &&
+      body !== null &&
+      "error" in body &&
+      typeof body.error === "object" &&
+      body.error !== null &&
+      "message" in body.error &&
+      typeof body.error.message === "string"
+    ) {
+      return body.error.message;
+    }
+  } catch {
+    // Les réponses sans JSON utilisent le message de repli.
+  }
+  return fallback;
+};
+
 /**
  * Vérifie le statut de la réponse, puis valide son contenu JSON avec un type guard.
  * À n'utiliser que pour une réponse avec corps (pas après un 204 No Content).
@@ -25,7 +45,8 @@ export const readJson = async <T>(
   failureMessage: string,
 ): Promise<T> => {
   if (!response.ok) {
-    throw new ApiError(response.status, `${failureMessage} (statut ${response.status})`);
+    const fallback = `${failureMessage} (statut ${response.status})`;
+    throw new ApiError(response.status, await readErrorMessage(response, fallback));
   }
   const data: unknown = await response.json();
   if (!isExpected(data)) {

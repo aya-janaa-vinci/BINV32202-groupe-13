@@ -28,5 +28,18 @@ export const withdrawApplication = async (token: string, applicationId: number):
     method: "DELETE",
     headers: { Authorization: token },
   });
-  if (!response.ok) throw new ApiError(response.status, `Retrait impossible (statut ${response.status})`);
+  if (!response.ok) {
+    const body: unknown = await response.json().catch(() => null);
+    const message =
+      typeof body === "object" &&
+      body !== null &&
+      "error" in body &&
+      typeof body.error === "object" &&
+      body.error !== null &&
+      "message" in body.error &&
+      typeof body.error.message === "string"
+        ? body.error.message
+        : `Retrait impossible (statut ${response.status})`;
+    throw new ApiError(response.status, message);
+  }
 };
