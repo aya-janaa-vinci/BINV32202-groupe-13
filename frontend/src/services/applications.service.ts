@@ -1,5 +1,5 @@
 import type { Application } from "../models/application.ts";
-import { API_URL, readJson } from "../utils/api.ts";
+import { API_URL, ApiError, readJson } from "../utils/api.ts";
 import { isApplication, isApplicationList } from "../utils/guards.ts";
 
 export const getApplications = async (token: string, signal?: AbortSignal): Promise<Application[]> => {
@@ -28,5 +28,5 @@ export const withdrawApplication = async (token: string, applicationId: number):
     method: "DELETE",
     headers: { Authorization: token },
   });
-  if (!response.ok) throw new Error(`Retrait impossible (statut ${response.status})`);
+  if (!response.ok) throw new ApiError(response.status, `Retrait impossible (statut ${response.status})`);
 };

@@ -5,6 +5,7 @@ import LoadingState from "../components/LoadingState.tsx";
 import OfferTable from "../components/OfferTable.tsx";
 import { useOffers } from "../hooks/useOffers.ts";
 import { applyToOffer } from "../services/applications.service.ts";
+import { isUnauthorized } from "../utils/api.ts";
 import { PERIOD_CODES, type PeriodCode } from "../models/offer.ts";
 import { PERIOD_LABELS } from "../utils/labels.ts";
 import type { User } from "../models/user.ts";
@@ -32,6 +33,7 @@ const OffersPage = ({ user, token, onUnauthorized }: OffersPageProps) => {
   const [selectedOffer, setSelectedOffer] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const { offers, isLoading, error } = useOffers(token, period, onUnauthorized);
 
   const submitApplication = async () => {
@@ -41,8 +43,13 @@ const OffersPage = ({ user, token, onUnauthorized }: OffersPageProps) => {
       setSelectedOffer(null);
       setMessage("");
       setActionError(null);
+      setActionSuccess("Votre candidature a été envoyée.");
     } catch (reason) {
-      setActionError(reason instanceof Error ? reason.message : "Candidature impossible");
+      if (isUnauthorized(reason)) {
+        onUnauthorized();
+      } else {
+        setActionError(reason instanceof Error ? reason.message : "Candidature impossible");
+      }
     }
   };
 
@@ -55,6 +62,7 @@ const OffersPage = ({ user, token, onUnauthorized }: OffersPageProps) => {
         <p className="result-count">
           {offers.length} offre{offers.length > 1 ? "s" : ""}
         </p>
+        {actionSuccess && <p className="state state-success">{actionSuccess}</p>}
         <OfferTable
           offers={offers}
           onApply={user.kind === "STUDENT" ? (offer) => setSelectedOffer(offer.id) : undefined}

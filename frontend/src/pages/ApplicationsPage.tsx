@@ -1,3 +1,4 @@
+import { useState } from "react";
 import EmptyState from "../components/EmptyState.tsx";
 import ErrorState from "../components/ErrorState.tsx";
 import LoadingState from "../components/LoadingState.tsx";
@@ -21,13 +22,16 @@ const STATUS_LABELS = {
 
 const ApplicationsPage = ({ token, onUnauthorized }: ApplicationsPageProps) => {
   const { applications, isLoading, error, reload } = useApplications(token, onUnauthorized);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const handleWithdraw = async (id: number) => {
     try {
       await withdrawApplication(token, id);
+      setActionError(null);
       reload();
     } catch (reason) {
       if (isUnauthorized(reason)) onUnauthorized();
+      else setActionError(reason instanceof Error ? reason.message : "Retrait impossible");
     }
   };
 
@@ -38,6 +42,7 @@ const ApplicationsPage = ({ token, onUnauthorized }: ApplicationsPageProps) => {
   return (
     <section>
       <h1>Mes candidatures</h1>
+      {actionError && <ErrorState message={actionError} />}
       <div className="table-wrapper">
         <table className="data-table">
           <thead><tr><th>Offre</th><th>Entreprise</th><th>Année</th><th>Statut</th><th>Action</th></tr></thead>
