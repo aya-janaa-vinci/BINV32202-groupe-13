@@ -4,6 +4,7 @@ import ErrorState from "../components/ErrorState.tsx";
 import LoadingState from "../components/LoadingState.tsx";
 import OfferTable from "../components/OfferTable.tsx";
 import { useOffers } from "../hooks/useOffers.ts";
+import { applyToOffer } from "../services/applications.service.ts";
 import { PERIOD_CODES, type PeriodCode } from "../models/offer.ts";
 import { PERIOD_LABELS } from "../utils/labels.ts";
 import type { User } from "../models/user.ts";
@@ -28,7 +29,22 @@ const PERIOD_FILTER_LABELS: Record<PeriodCode, string> = {
 
 const OffersPage = ({ user, token, onUnauthorized }: OffersPageProps) => {
   const [period, setPeriod] = useState<PeriodCode | undefined>(undefined);
+  const [selectedOffer, setSelectedOffer] = useState<number | null>(null);
+  const [message, setMessage] = useState("");
+  const [actionError, setActionError] = useState<string | null>(null);
   const { offers, isLoading, error } = useOffers(token, period, onUnauthorized);
+
+  const submitApplication = async () => {
+    if (selectedOffer === null) return;
+    try {
+      await applyToOffer(token, selectedOffer, message);
+      setSelectedOffer(null);
+      setMessage("");
+      setActionError(null);
+    } catch (reason) {
+      setActionError(reason instanceof Error ? reason.message : "Candidature impossible");
+    }
+  };
 
   const renderContent = () => {
     if (error) return <ErrorState message={error} />;
@@ -39,7 +55,24 @@ const OffersPage = ({ user, token, onUnauthorized }: OffersPageProps) => {
         <p className="result-count">
           {offers.length} offre{offers.length > 1 ? "s" : ""}
         </p>
-        <OfferTable offers={offers} />
+        <OfferTable
+          offers={offers}
+          onApply={user.kind === "STUDENT" ? (offer) => setSelectedOffer(offer.id) : undefined}
+        />
+        {selectedOffer !== null && (
+          <div className="state">
+            <h2>Candidater</h2>
+            <label htmlFor="application-message">Message (facultatif)</label>
+            <textarea
+              id="application-message"
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+            />
+            {actionError && <p className="state state-error">{actionError}</p>}
+            <button type="button" onClick={submitApplication}>Envoyer ma candidature</button>
+            <button type="button" onClick={() => setSelectedOffer(null)}>Annuler</button>
+          </div>
+        )}
       </>
     );
   };
