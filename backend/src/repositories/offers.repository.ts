@@ -32,6 +32,9 @@ export const createOffersRepository = (db: Db) => {
       AND (@period IS NULL OR p.code = @period)
     ORDER BY ay.start_date DESC, o.created_at DESC
   `);
+  const isPublished = db.prepare<{ offerId: number }, { id: number }>(
+    `SELECT id FROM offers WHERE id = @offerId AND status = 'PUBLISHED'`,
+  );
 
   return {
     /** Offres correspondant au filtre, de la plus récente année à la plus ancienne. */
@@ -41,6 +44,7 @@ export const createOffersRepository = (db: Db) => {
         depositorContactId: depositorContactId ?? null,
         period: period ?? null,
       }),
+    isPublished: (offerId: number): boolean => isPublished.get({ offerId }) !== undefined,
   };
 };
 

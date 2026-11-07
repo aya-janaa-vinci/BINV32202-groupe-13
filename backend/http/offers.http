@@ -45,3 +45,23 @@ Authorization: {{depositor.response.body.token}}
 ### Erreur 403 : promotrice et signataire
 GET http://localhost:3000/offers
 Authorization: {{promoter.response.body.token}}
+
+
+### Connexion étudiant
+# @name student
+POST http://localhost:3000/auth/demo-login
+Content-Type: application/json
+
+{
+  "kind": "STUDENT",
+  "id": 1
+}
+
+### Tentative sur une offre non publiée
+POST http://localhost:3000/applications/offers/2
+Authorization: {{student.response.body.token}}
+Content-Type: application/json
+
+{
+  "message": "Test d'une offre non publiée"
+}
