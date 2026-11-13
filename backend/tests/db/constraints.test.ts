@@ -169,6 +169,16 @@ const insertInternship = (overrides: Record<string, unknown> = {}) =>
     });
 
 describe("candidatures et stages", () => {
+  it("refuse un statut de candidature inconnu", () => {
+    expect(() =>
+      db
+        .prepare(
+          "INSERT INTO applications (offer_id, student_id, status) VALUES (?, ?, ?)",
+        )
+        .run(OFFER.FLEET_APP, STUDENT.LOUIS_CLAES, "PENDING"),
+    ).toThrow(/CHECK/);
+  });
+
   it("accepte un stage valide, avec ou sans promoteur", () => {
     expect(() => insertInternship()).not.toThrow();
     expect(() => insertInternship({ promoter_contact_id: null })).not.toThrow();

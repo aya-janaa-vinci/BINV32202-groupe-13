@@ -19,6 +19,16 @@ describe("candidatures étudiant", () => {
     expect(response.body.every((application: { offerId: number }) => application.offerId === OFFER.FLEET_APP)).toBe(true);
   });
 
+  it("refuse de candidater à une offre non publiée", async () => {
+    const response = await request(app)
+      .post(`/applications/offers/${OFFER.CLIENT_PORTAL}`)
+      .set("Authorization", tokenFor("STUDENT", STUDENT.LUCAS_DUPONT))
+      .send();
+
+    expect(response.status).toBe(404);
+    expect(response.body.error.code).toBe("OFFER_NOT_FOUND");
+  });
+
   it("refuse une double candidature active", async () => {
     const response = await request(app)
       .post(`/applications/offers/${OFFER.FLEET_APP}`)
