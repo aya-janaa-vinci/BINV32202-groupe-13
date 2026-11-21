@@ -9,7 +9,11 @@ import { hasContactRole, isAdmin, isStudent } from "./permissions.ts";
  * Offres visibles selon le profil (CdC § 4) : toutes pour l'administrateur, les offres
  * publiées pour l'étudiant, les offres qu'il a déposées pour un déposant.
  */
-const visibilityFilter = (viewer: User, period?: PeriodCode): OfferFilter => {
+const visibilityFilter = (
+  viewer: User,
+  period?: PeriodCode,
+  search?: string,
+): OfferFilter => {
   const filter = isAdmin(viewer)
     ? {}
     : isStudent(viewer)
@@ -20,12 +24,13 @@ const visibilityFilter = (viewer: User, period?: PeriodCode): OfferFilter => {
             throw new HttpError(403, "FORBIDDEN", "Vous n'avez pas accès aux offres");
           })();
 
-  return period === undefined ? filter : { ...filter, period };
+  const periodFilter = period === undefined ? filter : { ...filter, period };
+  return search === undefined ? periodFilter : { ...periodFilter, search };
 };
 
 export const createOffersService = (repository: OffersRepository) => ({
-  listOffers: (viewer: User, period?: PeriodCode): Offer[] =>
-    repository.findAll(visibilityFilter(viewer, period)).map(toOffer),
+  listOffers: (viewer: User, period?: PeriodCode, search?: string): Offer[] =>
+    repository.findAll(visibilityFilter(viewer, period, search)).map(toOffer),
 });
 
 export type OffersService = ReturnType<typeof createOffersService>;

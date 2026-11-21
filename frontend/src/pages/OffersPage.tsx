@@ -3,6 +3,7 @@ import EmptyState from "../components/EmptyState.tsx";
 import ErrorState from "../components/ErrorState.tsx";
 import LoadingState from "../components/LoadingState.tsx";
 import OfferTable from "../components/OfferTable.tsx";
+import SearchField from "../components/SearchField.tsx";
 import { useOffers } from "../hooks/useOffers.ts";
 import { applyToOffer } from "../services/applications.service.ts";
 import { isUnauthorized } from "../utils/api.ts";
@@ -30,11 +31,12 @@ const PERIOD_FILTER_LABELS: Record<PeriodCode, string> = {
 
 const OffersPage = ({ user, token, onUnauthorized }: OffersPageProps) => {
   const [period, setPeriod] = useState<PeriodCode | undefined>(undefined);
+  const [search, setSearch] = useState("");
   const [selectedOffer, setSelectedOffer] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
-  const { offers, isLoading, error } = useOffers(token, period, onUnauthorized);
+  const { offers, isLoading, error } = useOffers(token, period, search, onUnauthorized);
 
   const submitApplication = async () => {
     if (selectedOffer === null) return;
@@ -56,7 +58,17 @@ const OffersPage = ({ user, token, onUnauthorized }: OffersPageProps) => {
   const renderContent = () => {
     if (error) return <ErrorState message={error} />;
     if (isLoading) return <LoadingState />;
-    if (offers.length === 0) return <EmptyState message="Aucune offre à afficher." />;
+    if (offers.length === 0) {
+      return (
+        <EmptyState
+          message={
+            search.trim()
+              ? "Aucune offre ne correspond à la recherche."
+              : "Aucune offre à afficher."
+          }
+        />
+      );
+    }
     return (
       <>
         <p className="result-count">
@@ -105,6 +117,7 @@ const OffersPage = ({ user, token, onUnauthorized }: OffersPageProps) => {
           </option>
         ))}
       </select>
+      <SearchField label="Rechercher par titre" value={search} onChange={setSearch} />
       {renderContent()}
     </section>
   );
