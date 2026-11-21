@@ -74,6 +74,9 @@ Retourne l'utilisateur connecté.
 ### Requête
 
 - Header `Authorization` obligatoire
+- Paramètre facultatif `q` : texte contenu dans le titre, sans tenir compte de la casse.
+  Les espaces autour sont ignorés ; une valeur vide est ignorée. 100 caractères au maximum.
+- Paramètre facultatif `period` : `P1`, `P2` ou `OTHER`.
 - Paramètre facultatif `period` : `P1`, `P2` ou `OTHER`. Sans ce paramètre, toutes les offres
   normalement visibles par l'utilisateur sont retournées.
 

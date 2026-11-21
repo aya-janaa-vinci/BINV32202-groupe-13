@@ -104,4 +104,40 @@ describe("OffersPage", () => {
       ),
     );
   });
+
+  it("transmet la recherche du titre et affiche un état vide adapté", async () => {
+    const fetchMock = stubFetch({ "/api/offers": () => Response.json([]) });
+
+    render(<OffersPage user={studentUser} token="jeton" onUnauthorized={vi.fn()} />);
+
+    fireEvent.change(screen.getByLabelText("Rechercher par titre"), {
+      target: { value: "  chatbot  " },
+    });
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenLastCalledWith(
+        "/api/offers?q=chatbot",
+        expect.objectContaining({ headers: { Authorization: "jeton" } }),
+      ),
+    );
+    expect(await screen.findByText("Aucune offre ne correspond à la recherche.")).toBeInTheDocument();
+  });
+
+  it("combine la recherche avec la période dans l'URL", async () => {
+    const fetchMock = stubFetch({ "/api/offers": () => Response.json(offers) });
+
+    render(<OffersPage user={contactUser} token="jeton" onUnauthorized={vi.fn()} />);
+    await screen.findByText("Refonte du portail client");
+    fireEvent.change(screen.getByLabelText("Période"), { target: { value: "P2" } });
+    fireEvent.change(screen.getByLabelText("Rechercher par titre"), {
+      target: { value: "portail" },
+    });
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenLastCalledWith(
+        "/api/offers?period=P2&q=portail",
+        expect.objectContaining({ headers: { Authorization: "jeton" } }),
+      ),
+    );
+  });
 });

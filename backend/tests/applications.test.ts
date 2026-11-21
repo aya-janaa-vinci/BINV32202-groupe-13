@@ -63,4 +63,23 @@ describe("candidatures étudiant", () => {
     expect(response.status).toBe(409);
     expect(response.body.error.code).toBe("APPLICATION_ALREADY_PROCESSED");
   });
+
+  it("refuse à un étudiant de retirer la candidature d'un autre étudiant", async () => {
+    const response = await request(app)
+      .delete(`/applications/${APPLICATION.MATEUSZ_CLOUD_MIGRATION}`)
+      .set("Authorization", tokenFor("STUDENT", STUDENT.LUCAS_DUPONT));
+
+    expect(response.status).toBe(404);
+    expect(response.body.error.code).toBe("APPLICATION_NOT_FOUND");
+
+    const mateuszApplications = await request(app)
+      .get("/applications")
+      .set("Authorization", tokenFor("STUDENT", STUDENT.MATEUSZ_KOWALSKI));
+    const mateuszApplication = mateuszApplications.body.find(
+      (application: { id: number }) => application.id === APPLICATION.MATEUSZ_CLOUD_MIGRATION,
+    );
+
+    expect(mateuszApplications.status).toBe(200);
+    expect(mateuszApplication.status).toBe("SELECTED");
+  });
 });
