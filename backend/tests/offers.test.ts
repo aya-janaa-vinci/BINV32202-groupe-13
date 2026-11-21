@@ -10,9 +10,17 @@ beforeEach(() => {
   app = createTestApp();
 });
 
-const listOffersAs = (kind: UserKind, id: number, period?: string) => {
+const listOffersAs = (
+  kind: UserKind,
+  id: number,
+  period?: string,
+  search?: string,
+) => {
   const req = request(app).get("/offers").set("Authorization", tokenFor(kind, id));
-  return period === undefined ? req : req.query({ period });
+  const query: Record<string, string> = {};
+  if (period !== undefined) query.period = period;
+  if (search !== undefined) query.q = search;
+  return Object.keys(query).length === 0 ? req : req.query(query);
 };
 
 const offerIds = (body: { id: number }[]): number[] => body.map((offer) => offer.id);
@@ -116,6 +124,78 @@ describe("GET /offers : visibilité selon le profil", () => {
 });
 
 describe("GET /offers : paramètres", () => {
+  it("cherche sans distinguer la casse une expression entière dans le titre", async () => {
+    const response = await listOffersAs(
+      "ADMIN",
+      ADMINISTRATOR.ANNE_LECLERCQ,
+      undefined,
+      "TABLEAU DE BORD",
+    );
+
+    expect(response.status).toBe(200);
+    expect(offerIds(response.body)).toEqual([OFFER.DATA_QUALITY]);
+  });
+
+  it("trouve plusieurs mots comme une expression contenue dans le titre", async () => {
+    const response = await listOffersAs(
+      "ADMIN",
+      ADMINISTRATOR.ANNE_LECLERCQ,
+      undefined,
+      "qualité des données",
+    );
+
+    expect(response.status).toBe(200);
+    expect(offerIds(response.body)).toEqual([OFFER.DATA_QUALITY]);
+  });
+
+  it("ignore les espaces autour d'une recherche", async () => {
+    const response = await listOffersAs(
+      "ADMIN",
+      ADMINISTRATOR.ANNE_LECLERCQ,
+      undefined,
+      "  facturation  ",
+    );
+
+    expect(response.status).toBe(200);
+    expect(offerIds(response.body)).toEqual([OFFER.BILLING_API]);
+  });
+
+  it("ignore une recherche vide", async () => {
+    const response = await listOffersAs(
+      "ADMIN",
+      ADMINISTRATOR.ANNE_LECLERCQ,
+      undefined,
+      "   ",
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(10);
+  });
+
+  it("combine recherche, période et visibilité étudiant", async () => {
+    const response = await listOffersAs(
+      "STUDENT",
+      STUDENT.LUCAS_DUPONT,
+      "P2",
+      "assistant conversationnel",
+    );
+
+    expect(response.status).toBe(200);
+    expect(offerIds(response.body)).toEqual([OFFER.INTERNAL_CHATBOT]);
+  });
+
+  it("ne montre pas aux étudiants une offre archivée correspondant à la recherche", async () => {
+    const response = await listOffersAs(
+      "STUDENT",
+      STUDENT.LUCAS_DUPONT,
+      undefined,
+      "rapports PDF",
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([]);
+  });
+
   it("refuse une période inconnue", async () => {
     const response = await listOffersAs("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ, "P3");
 
