@@ -98,3 +98,7 @@ On l'a bien vu avec le défaut : quand on a cassé la recherche, 6 tests ont éc
 On prendrait MCP pour découvrir une fonctionnalité ou vérifier vite fait que qlq chose marche, par exemple pour voir comment la page est construite avant d'écrire des tests, ou pour reproduire un bug à la main. C'est rapide et on a rien à écrire.
 
 Je prendrais un test automatisé si je veux être sûr que ça marche tout le temps : avant de fusionner une PR, après avoir modifié du code, ou pour une fonctionnalité importante qu'on ne veut pas casser par accident. Au final les deux se complètent : MCP pour explorer, Playwright Test pour garder la vérification.
+
+
+### Crédits utilisés
+26%
